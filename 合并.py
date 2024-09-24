@@ -26,21 +26,25 @@ for csv_file in csv_files:
     # 获取文件名并移除扩展名
     file_name = os.path.splitext(csv_file)[0]
 
-    # 重命名后面的列名为"文件名+列名"
-    new_columns = df.columns[:3].tolist() + [f"{file_name}_{col}" for col in df.columns[3:]]
-    df.columns = new_columns
+    # 只保留第二列作为key以及后面的列
+    df_key = df.iloc[:, [1]].copy()  # 第二列作为key
+    df_rest = df.iloc[:, 3:].copy()  # 忽略前三列，保留后面的列
 
-    # 保留前三列并去重
+    # 修改后面列的列名为 "文件名+列名"
+    new_columns = [f"{file_name}_{col}" for col in df_rest.columns]
+    df_rest.columns = new_columns
+
+    # 合并key和数据部分
+    df_final = pd.concat([df_key, df_rest], axis=1)
+
+    # 如果merged_df为空，则直接赋值第一个文件的内容
     if merged_df is None:
-        merged_df = df
+        merged_df = df_final
     else:
-        # 合并数据，按前三列作为key，保留一次相同的前三列
-        merged_df = pd.merge(merged_df, df, on=new_columns[:3], how='outer')
+        # 按第二列的key进行外连接合并
+        merged_df = pd.merge(merged_df, df_final, on=df_key.columns[0], how='outer')
 
-# 删除完全重复的前三列数据
-merged_df.drop_duplicates(subset=merged_df.columns[:3], inplace=True)
-
-# 将合并后的数据写入新的csv文件
+# 将合并后的数据写入新的csv文件，不包括前三列的内容
 merged_df.to_csv(output_file, sep=csv_separator, index=False)
 
 print(f'合并后的CSV文件已保存为: {output_file}')
