@@ -27,7 +27,7 @@ for csv_file in csv_files:
     file_name = os.path.splitext(csv_file)[0]
 
     # 只保留第二列作为key以及后面的列
-    df_key = df.iloc[:, [1]].copy()  # 第二列作为key
+    df_key = df.iloc[:, [2]].copy()  # 第三列作为key
     df_rest = df.iloc[:, 3:].copy()  # 忽略前三列，保留后面的列
 
     # 修改后面列的列名为 "文件名+列名"
@@ -41,7 +41,7 @@ for csv_file in csv_files:
     if merged_df is None:
         merged_df = df_final
     else:
-        # 按第二列的key进行外连接合并
+        # 按第三列的key进行外连接合并
         merged_df = pd.merge(merged_df, df_final, on=df_key.columns[0], how='outer')
 
 # 将合并后的数据写入新的csv文件，不包括前三列的内容
